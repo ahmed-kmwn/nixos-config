@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports =
@@ -27,9 +27,19 @@
 
   i18n.defaultLocale = "en_US.UTF-8";
 
-  services.xserver.enable = true;
+  services.libinput = {
+    enable = true;
+    touchpad = {
+      tapping = true;
+      naturalScrolling = true;
+      middleEmulation = true;
+    };
+  };
+
+
+  programs.niri.enable = true;
   services.displayManager.ly.enable = true;
-  services.desktopManager.plasma6.enable = true;
+  
 
   services.xserver.xkb = {
     layout = "us,ara";
@@ -53,12 +63,41 @@
       extraGroups = [ "networkmanager" "wheel" ];
       shell = pkgs.zsh;
       packages = with pkgs; [
-       kdePackages.kate
      ];
   };
 
+  home-manager = {
+    extraSpecialArgs = { inherit inputs; };
+    users = {
+      "ahmed" = { 
+        home.username = "ahmed";
+        home.homeDirectory = "/home/ahmed";
+        home.stateVersion = "25.11";
+        home.packages = with pkgs; [
+          fuzzel
+          waybar
+          swaybg
+          alacritty
+          mako
+          xwayland
+        ];
+        wayland.windowManager.niri.settings = {
+        };
 
-  programs.firefox.enable = true;
+          programs.zsh = {
+             enable = true;
+            autosuggestions.enable = true;
+            syntaxHighlighting.enable = true;
+            promptInit = "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+            shellAliases = {
+            nixo-up = "sudo nixos-rebuild switch --flake /etc/nixos/#nixos";
+          };
+        };
+      };
+    };
+  };
+
+  programs.firefox.enable = false;
   nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
     vim
@@ -69,12 +108,12 @@
     htop
     git
     vlc
+    distrobox
     google-chrome
     haskell.compiler.native-bignum.ghc9103
     haskellPackages.haskell-language-server
     haskellPackages.cabal-install
     stack
-    
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -84,15 +123,10 @@
     enableSSHSupport = true;
   };
 
-  programs.zsh = {
-      enable = true;
-      autosuggestions.enable = true;
-      syntaxHighlighting.enable = true;
-      promptInit = "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      shellAliases = {
-         nixo-up = "sudo nixos-rebuild switch --flake /etc/nixos/#nixos";
-      };
-  };
+  fonts.packages = with pkgs; [
+     nerd-fonts.jetbrains-mono
+     nerd-fonts.symbols-only
+  ];
 
 #  fonts.packages = with pkgs; [
 #     (pkgs.stdenv.mkDerivation {
@@ -134,5 +168,7 @@
     };
   };
 
-  system.stateVersion = "25.11";}
-
+  system.stateVersion = "25.11";
+  
+  
+  }
